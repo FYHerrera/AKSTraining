@@ -100,9 +100,9 @@ create_aks_cluster() {
 verify_cluster_health() {
     log "Verifying cluster health..."
     kubectl wait --for=condition=Ready nodes --all --timeout=300s &>/dev/null || warn "Some nodes not ready"
-    local ready; ready=$(kubectl get nodes --no-headers 2>/dev/null | grep -c " Ready" || echo 0); ok "$ready/$DEFAULT_NODE_COUNT nodes Ready"
+    local ready; ready=$(kubectl get nodes --no-headers 2>/dev/null | grep -c " Ready" || true); ok "$ready/$DEFAULT_NODE_COUNT nodes Ready"
     local tries=0; while [[ $tries -lt 12 ]]; do
-        local bad; bad=$(kubectl get pods -n kube-system --no-headers 2>/dev/null | grep -v "Running\|Completed" | wc -l || echo 0)
+        local bad; bad=$(kubectl get pods -n kube-system --no-headers 2>/dev/null | grep -v "Running\|Completed" | wc -l || true)
         [[ "$bad" -eq 0 ]] && break; ((tries++)); sleep 10; done; ok "System pods healthy"
 }
 
