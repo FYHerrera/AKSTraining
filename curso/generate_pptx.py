@@ -270,6 +270,17 @@ def add_lab_slide(prs, lab_num, title, description, command, lang="en"):
     """Add a lab exercise slide."""
     slide = prs.slides.add_slide(prs.slide_layouts[6])
 
+    # Map lab number to folder path for the raw GitHub URL
+    folder_map = {
+        1: "01-fundamentos-kubectl", 2: "02-pods-y-contenedores",
+        3: "03-deployments-y-replicas", 4: "04-servicios-y-networking",
+        5: "05-configmaps-y-secrets", 6: "06-storage-y-volumenes",
+        7: "07-network-policies", 8: "08-nodos-y-scheduling",
+        9: "09-azure-networking", 10: "10-troubleshooting-avanzado",
+    }
+    folder = folder_map.get(lab_num, f"{lab_num:02d}")
+    raw_url = f"https://raw.githubusercontent.com/FYHerrera/AKSTraining/main/curso/lecciones/{folder}/{command}"
+
     bg = slide.shapes.add_shape(
         MSO_SHAPE.RECTANGLE, 0, 0, Inches(13.33), Inches(7.5)
     )
@@ -322,15 +333,10 @@ def add_lab_slide(prs, lab_num, title, description, command, lang="en"):
     tf = txBox.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
-    p.text = f"$ chmod +x {command}"
-    p.font.size = Pt(18)
+    p.text = f"$ curl -O {raw_url} ; chmod +x {command} ; ./{command}"
+    p.font.size = Pt(14)
     p.font.color.rgb = GREEN
     p.font.name = "Consolas"
-    p2 = tf.add_paragraph()
-    p2.text = f"$ ./{command}"
-    p2.font.size = Pt(18)
-    p2.font.color.rgb = GREEN
-    p2.font.name = "Consolas"
 
 
 def create_presentation():

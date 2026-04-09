@@ -53,7 +53,7 @@ cleanup_on_interrupt() {
 }
 trap cleanup_on_interrupt INT TERM
 
-generate_name() { local s; s=$(head -c 100 /dev/urandom | tr -dc 'a-z0-9' | head -c 4); echo "aks-lab-${1}-${s}"; }
+generate_name() { local s; s=$(head -c 100 /dev/urandom | tr -dc 'a-z0-9' | head -c 4); echo "lab-${1}-${s}"; }
 
 check_prerequisites() {
     header "Pre-flight Checks"
@@ -156,7 +156,7 @@ run_lab() {
 ###############################################################################
 # Lab 01 – Application Down + Scavenger Hunt
 ###############################################################################
-LAB_NAME="kubectl-fundamentals"
+LAB_NAME="kubectl-fund"
 LAB_TITLE="Lab 01 – Application Down + Scavenger Hunt"
 LAB_DESC="
   ${BOLD}Part A – Application Down${NC}

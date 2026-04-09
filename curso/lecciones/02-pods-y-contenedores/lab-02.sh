@@ -49,7 +49,7 @@ init_logging() {
 cleanup_on_interrupt() { echo ""; warn "Interrupted by user (Ctrl+C)"; [[ -n "${RESOURCE_GROUP:-}" ]] && cleanup_resources; exit 130; }
 trap cleanup_on_interrupt INT TERM
 
-generate_name() { local s; s=$(head -c 100 /dev/urandom | tr -dc 'a-z0-9' | head -c 4); echo "aks-lab-${1}-${s}"; }
+generate_name() { local s; s=$(head -c 100 /dev/urandom | tr -dc 'a-z0-9' | head -c 4); echo "lab-${1}-${s}"; }
 
 check_prerequisites() {
     header "Pre-flight Checks"
