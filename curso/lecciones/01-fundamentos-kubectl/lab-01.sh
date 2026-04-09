@@ -126,12 +126,24 @@ cleanup_resources() {
     else warn "Resources kept."; warn "Delete later: az group delete --name $RESOURCE_GROUP --yes"; fi
 }
 
+show_connect_info() {
+    echo ""; separator
+    header "Open a new Cloud Shell tab to work on the lab"
+    info "Click this link to open a new Cloud Shell session:"
+    echo -e "  ${CYAN}https://shell.azure.com/bash${NC}"
+    echo ""
+    info "Then run this command to connect to the cluster:"
+    echo -e "  ${GREEN}az aks get-credentials --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME --overwrite-existing${NC}"
+    echo ""
+}
+
 interactive_menu() {
     local validate_fn="$1" hint_fn="$2" solution_fn="$3"; local attempt=0
     while true; do
         echo ""; separator; echo -e "${BOLD}  Lab Menu${NC}"; separator
         echo -e "    ${GREEN}[V]${NC}  Validate my fix"; echo -e "    ${YELLOW}[H]${NC}  Request a hint"
-        echo -e "    ${CYAN}[S]${NC}  Show solution"; echo -e "    ${RED}[Q]${NC}  Quit & Cleanup"
+        echo -e "    ${CYAN}[S]${NC}  Show solution"; echo -e "    ${BLUE}[C]${NC}  Connect to cluster (new tab)"
+        echo -e "    ${RED}[Q]${NC}  Quit & Cleanup"
         echo ""; echo -ne "${BOLD}  Choose an option: ${NC}"; read -r choice
         case "${choice,,}" in
             v|validate) attempt=$((attempt+1)); info "Validation attempt #$attempt"
@@ -140,8 +152,9 @@ interactive_menu() {
                     ok "Time: ${mins}m ${secs}s  |  Attempts: $attempt"; cleanup_resources; return 0; fi ;;
             h|hint) $hint_fn "$attempt" ;;
             s|solution) echo -ne "${YELLOW}  Show full solution? (y/n): ${NC}"; read -r c; [[ "${c,,}" =~ ^y ]] && $solution_fn ;;
+            c|connect) show_connect_info ;;
             q|quit) cleanup_resources; return 1 ;;
-            *) warn "Invalid choice. Use V, H, S or Q." ;; esac
+            *) warn "Invalid choice. Use V, H, S, C or Q." ;; esac
     done
 }
 
@@ -151,6 +164,7 @@ run_lab() {
     LAB_START_TIME=$(date +%s); init_logging "$lab_name"
     header "$lab_title"; echo -e "$lab_desc"; echo ""
     check_prerequisites; $deploy_fn
+    show_connect_info
     interactive_menu "$validate_fn" "$hint_fn" "$solution_fn"
 }
 
@@ -168,8 +182,9 @@ LAB_DESC="
   Use ${CYAN}kubectl${NC} to investigate and fix the application.
 
   ${BOLD}Part B – Scavenger Hunt${NC}
-  After fixing the app, prove you can navigate the cluster by creating a
-  ConfigMap named ${CYAN}scavenger-answers${NC} in the ${CYAN}default${NC} namespace with:
+  A ConfigMap named ${CYAN}scavenger-answers${NC} already exists in the
+  ${CYAN}default${NC} namespace with ${RED}placeholder values${NC}.
+  Update it with the correct answers by exploring the cluster:
     ${GREEN}node-count${NC}  = number of nodes (e.g. \"2\")
     ${GREEN}dns-pod${NC}     = full name of a CoreDNS pod in kube-system
     ${GREEN}k8s-version${NC} = kubelet version on a node (e.g. \"v1.29.7\")
@@ -200,19 +215,39 @@ deploy() {
     kubectl expose deployment api-backend --port=8080 --target-port=80 --type=ClusterIP 2>/dev/null || true
     kubectl wait --for=condition=Available deployment/api-backend --timeout=120s &>/dev/null || true
 
+    # Pre-create scavenger ConfigMap with placeholder values
+    kubectl create configmap scavenger-answers \
+        --from-literal=node-count=REPLACE_ME \
+        --from-literal=dns-pod=REPLACE_ME \
+        --from-literal=k8s-version=REPLACE_ME 2>/dev/null || true
+
     kubectl wait --for=condition=Ready pod --all -n production --timeout=120s &>/dev/null || true
     kubectl wait --for=condition=Ready pod --all -n staging --timeout=120s &>/dev/null || true
     kubectl wait --for=condition=Ready pod/debug-tools --timeout=120s &>/dev/null || true
 
     ok "Application environment deployed"
+
     echo ""; separator
+    header "What was deployed"
+    info "Namespaces: default, production, staging"
+    info "Deployments: web-app (default), api-backend (default)"
+    info "Services: web-app (ClusterIP:80), api-backend (ClusterIP:8080)"
+    info "Pods: metrics-collector (production), staging-app (staging), debug-tools (default)"
+    info "ConfigMap: scavenger-answers (default) — has placeholder values"
+
+    echo ""; separator
+    header "What's wrong"
     err "ALERT: The web-app service is NOT responding!"
-    info "Endpoints show 0 backends for the web-app service."
+    err "Endpoints show 0 backends for the web-app service."
     info "Other services (api-backend, production, staging) appear healthy."
-    echo ""
-    info "Part A: Fix the web-app so it has running pods again."
-    info "Part B: Create a ConfigMap 'scavenger-answers' with 3 keys:"
-    info "        node-count, dns-pod, k8s-version"
+
+    echo ""; separator
+    header "Your task"
+    info "Part A: Investigate why web-app has 0 endpoints and fix it."
+    info "Part B: The ConfigMap 'scavenger-answers' exists with REPLACE_ME values."
+    info "        Update them with the real values using:"
+    echo -e "  ${CYAN}kubectl edit configmap scavenger-answers${NC}"
+    info "        Or delete and recreate with --from-literal flags."
 }
 
 validate() {
@@ -284,7 +319,8 @@ hint() {
         info "  kubectl get pods -n kube-system"
         info "  kubectl get nodes -o wide   (VERSION column)"
     else
-        info "Hint 4 (Part B): Create the ConfigMap:"
+        info "Hint 4 (Part B): Update the ConfigMap (delete + recreate):"
+        info "  kubectl delete configmap scavenger-answers"
         info "  kubectl create configmap scavenger-answers \\"
         info "    --from-literal=node-count=<N> \\"
         info "    --from-literal=dns-pod=<coredns-pod-name> \\"
@@ -313,7 +349,8 @@ solution() {
     echo -e "  ${CYAN}kubectl get pods -n kube-system -l k8s-app=kube-dns${NC}"; echo ""
     info "Step 7: Get the Kubernetes version"
     echo -e "  ${CYAN}kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}'${NC}"; echo ""
-    info "Step 8: Create the ConfigMap"
+    info "Step 8: Update the ConfigMap (delete + recreate)"
+    echo -e "  ${CYAN}kubectl delete configmap scavenger-answers${NC}"
     echo -e "  ${CYAN}kubectl create configmap scavenger-answers \\\\${NC}"
     echo -e "  ${CYAN}  --from-literal=node-count=\$(kubectl get nodes --no-headers | wc -l) \\\\${NC}"
     echo -e "  ${CYAN}  --from-literal=dns-pod=\$(kubectl get pods -n kube-system -l k8s-app=kube-dns -o name | head -1 | cut -d/ -f2) \\\\${NC}"

@@ -88,20 +88,23 @@ verify_cluster_health() {
 
 cleanup_resources() { echo ""; separator; echo -ne "${YELLOW}  Delete all lab resources? (y/n): ${NC}"; read -r response; if [[ "${response,,}" =~ ^y ]]; then log "Deleting resource group $RESOURCE_GROUP..."; az group delete --name "$RESOURCE_GROUP" --yes --no-wait 2>/dev/null || true; ok "Deletion initiated."; else warn "Resources kept."; warn "Delete later: az group delete --name $RESOURCE_GROUP --yes"; fi; }
 
+show_connect_info() { echo ""; separator; header "Open a new Cloud Shell tab to work on the lab"; info "Click this link to open a new Cloud Shell session:"; echo -e "  ${CYAN}https://shell.azure.com/bash${NC}"; echo ""; info "Then run this command to connect to the cluster:"; echo -e "  ${GREEN}az aks get-credentials --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME --overwrite-existing${NC}"; echo ""; }
+
 interactive_menu() {
     local validate_fn="$1" hint_fn="$2" solution_fn="$3"; local attempt=0
     while true; do
         echo ""; separator; echo -e "${BOLD}  Lab Menu${NC}"; separator
-        echo -e "    ${GREEN}[V]${NC}  Validate my fix"; echo -e "    ${YELLOW}[H]${NC}  Request a hint"; echo -e "    ${CYAN}[S]${NC}  Show solution"; echo -e "    ${RED}[Q]${NC}  Quit & Cleanup"
+        echo -e "    ${GREEN}[V]${NC}  Validate my fix"; echo -e "    ${YELLOW}[H]${NC}  Request a hint"; echo -e "    ${CYAN}[S]${NC}  Show solution"; echo -e "    ${BLUE}[C]${NC}  Connect to cluster (new tab)"; echo -e "    ${RED}[Q]${NC}  Quit & Cleanup"
         echo ""; echo -ne "${BOLD}  Choose an option: ${NC}"; read -r choice
         case "${choice,,}" in
             v|validate) attempt=$((attempt+1)); info "Validation attempt #$attempt"; if $validate_fn; then echo ""; header "Lab Completed Successfully!"; local end elapsed mins secs; end=$(date +%s); elapsed=$((end - LAB_START_TIME)); mins=$((elapsed / 60)); secs=$((elapsed % 60)); ok "Time: ${mins}m ${secs}s  |  Attempts: $attempt"; cleanup_resources; return 0; fi ;;
             h|hint) $hint_fn "$attempt" ;; s|solution) echo -ne "${YELLOW}  Show full solution? (y/n): ${NC}"; read -r c; [[ "${c,,}" =~ ^y ]] && $solution_fn ;;
-            q|quit) cleanup_resources; return 1 ;; *) warn "Invalid choice. Use V, H, S or Q." ;; esac
+            c|connect) show_connect_info ;;
+            q|quit) cleanup_resources; return 1 ;; *) warn "Invalid choice. Use V, H, S, C or Q." ;; esac
     done
 }
 
-run_lab() { local lab_name="$1" lab_title="$2" lab_desc="$3" deploy_fn="$4" validate_fn="$5" hint_fn="$6" solution_fn="$7"; LAB_START_TIME=$(date +%s); init_logging "$lab_name"; header "$lab_title"; echo -e "$lab_desc"; echo ""; check_prerequisites; $deploy_fn; interactive_menu "$validate_fn" "$hint_fn" "$solution_fn"; }
+run_lab() { local lab_name="$1" lab_title="$2" lab_desc="$3" deploy_fn="$4" validate_fn="$5" hint_fn="$6" solution_fn="$7"; LAB_START_TIME=$(date +%s); init_logging "$lab_name"; header "$lab_title"; echo -e "$lab_desc"; echo ""; check_prerequisites; $deploy_fn; show_connect_info; interactive_menu "$validate_fn" "$hint_fn" "$solution_fn"; }
 
 ###############################################################################
 # Lab 03 – Failed Rollout
@@ -190,10 +193,24 @@ spec:
           failureThreshold: 2
 EOF
     ok "Broken update applied"
-    sleep 15; echo ""; separator
+    sleep 15
+
+    echo ""; separator
+    header "What was deployed"
+    info "Deployment: api-server (3 replicas) in default namespace"
+    info "Revision 1: Working nginx:1.25 (initial deployment)"
+    info "Revision 2: Added liveness probe (broken update)"
+
+    echo ""; separator
+    header "What's wrong"
     err "Deployment 'api-server' rollout is failing!"
-    info "New pods are crashing due to a bad liveness probe."
-    info "Try: kubectl rollout status deployment/api-server"
+    err "New pods are in CrashLoopBackOff — the liveness probe keeps failing."
+    err "Old replicas were scaled down during the update."
+
+    echo ""; separator
+    header "Your task"
+    info "Get the api-server deployment healthy with 3 Running replicas."
+    info "Start with: kubectl rollout status deployment/api-server"
 }
 
 validate() {
