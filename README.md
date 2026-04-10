@@ -1,15 +1,30 @@
-# AKS Troubleshooting Labs
+# AKS Troubleshooting Course for Support Engineers
 
-Interactive hands-on labs that deploy a broken AKS environment for you to diagnose and fix.
+A structured 10-lesson course with interactive hands-on labs. Each lesson teaches key Kubernetes and AKS concepts, then the corresponding lab deploys a broken environment for you to diagnose and fix.
 
-## How it works
+## Course Overview
 
-1. Run a lab script (Bash or PowerShell)
-2. The script validates prerequisites (Azure CLI, login, kubectl)
-3. An AKS cluster is created with a **specific problem injected**
-4. You investigate and fix the issue using your own skills
-5. Use the interactive menu to **validate**, request **hints**, or see the **solution**
-6. After completion, choose whether to clean up cloud resources
+| # | Lesson | Lab | Difficulty |
+|---|--------|-----|------------|
+| 01 | kubectl Fundamentals & AKS Architecture | Scavenger Hunt: find cluster info using kubectl | ★☆☆ |
+| 02 | Pods and Containers | Fix a pod with an incorrect image | ★☆☆ |
+| 03 | Deployments and ReplicaSets | Fix a failed rollout | ★★☆ |
+| 04 | Services and Networking | Service not connecting to pods | ★★☆ |
+| 05 | ConfigMaps and Secrets | App fails due to missing configuration | ★★☆ |
+| 06 | Storage and Volumes | PVC stuck in Pending | ★★☆ |
+| 07 | Network Policies | Traffic blocked between pods | ★★★ |
+| 08 | Node Management: Taints & Scheduling | Taints prevent pod scheduling | ★★★ |
+| 09 | Azure Integration (NSG / Load Balancer) | NSG blocks external traffic | ★★★ |
+| 10 | Advanced Troubleshooting | Multi-problem scenario | ★★★ |
+
+## Recommended Pace
+
+| Week | Lessons | Focus |
+|------|---------|-------|
+| 1 | 01–03 | Fundamentals: kubectl, Pods, Deployments |
+| 2 | 04–06 | Networking, Configuration, Storage |
+| 3 | 07–08 | Network Policies, Node Scheduling |
+| 4 | 09–10 | Azure Integration, Advanced Troubleshooting |
 
 ## Prerequisites
 
@@ -17,9 +32,7 @@ Interactive hands-on labs that deploy a broken AKS environment for you to diagno
 |------|----------|---------|
 | Azure CLI (`az`) | Yes | [Install](https://learn.microsoft.com/cli/azure/install-azure-cli) |
 | kubectl | Auto-installed | `az aks install-cli` |
-| jq (Bash only) | Yes | [Install](https://jqlang.github.io/jq/download/) |
-| Bash / WSL | For bash scripts | Windows: WSL or Git Bash |
-| PowerShell 5.1+ | For PS scripts | Built into Windows |
+| jq | Yes | [Install](https://jqlang.github.io/jq/download/) |
 
 **Azure login required before running any lab:**
 ```bash
@@ -27,34 +40,49 @@ az login
 az account set --subscription "<your-subscription>"
 ```
 
-## Available Labs
+## How to Use the Course
 
-| # | Lab | Problem | Difficulty |
-|---|-----|---------|------------|
-| 01 | DNS Resolution Failure | NetworkPolicy blocks all egress including DNS | ★★☆ |
-| 02 | Pod Stuck in Pending | nodeSelector references non-existent label | ★☆☆ |
-| 03 | CrashLoopBackOff | Liveness probe on wrong port causes restart loop | ★★☆ |
-| 04 | ImagePullBackOff | Non-existent container image tag | ★☆☆ |
-| 05 | Network Policy Blocking | Ingress policy with wrong label selector | ★★★ |
-| 06 | Node Taint Issue | Maintenance taints prevent scheduling | ★★☆ |
-| 07 | NSG Blocking Traffic | Azure NSG deny rule blocks LoadBalancer port 80 | ★★★ |
+### 1. Read the Lesson
 
-## Running a Lab
+Each lesson is a Markdown file with theory, diagrams, and key commands:
 
-### Bash (Linux / macOS / WSL)
+```
+curso/lecciones/01-fundamentos-kubectl/leccion.md
+curso/lecciones/02-pods-y-contenedores/leccion.md
+...
+```
+
+### 2. Run the Corresponding Lab
+
+**Azure Cloud Shell (recommended):**
 ```bash
-cd LABs/bash
+chmod +x cloudshell/aks-labs.sh
+./cloudshell/aks-labs.sh          # Interactive menu
+./cloudshell/aks-labs.sh 1        # Run a specific lab by number
+```
+
+**Bash (Linux / macOS / WSL):**
+```bash
+cd bash
 chmod +x lab-01-dns-resolution.sh
 ./lab-01-dns-resolution.sh
 ```
 
-### PowerShell (Windows)
+**PowerShell (Windows):**
 ```powershell
-cd LABs\powershell
+cd powershell
 .\Lab-01-DnsResolution.ps1
 ```
 
-## Interactive Menu
+## How Labs Work
+
+1. The script validates prerequisites (Azure CLI, login, kubectl, required resource providers)
+2. An AKS cluster is created with Azure CNI networking and a **specific problem injected**
+3. You investigate and fix the issue using your own skills
+4. Use the interactive menu to **validate**, request **hints**, or see the **solution**
+5. After completion, choose whether to clean up cloud resources
+
+### Interactive Menu
 
 Once the broken environment is deployed, you see:
 
@@ -81,47 +109,43 @@ Override defaults via environment variables:
 |----------|---------|-------------|
 | `AKS_LAB_REGION` | `canadacentral` | Azure region |
 | `AKS_LAB_NODE_COUNT` | `2` | Nodes per cluster |
-| `AKS_LAB_VM_SIZE` | `Standard_DS2_v2` | Node VM size |
+| `AKS_LAB_VM_SIZE` | `Standard_D8ds_v5` | Node VM size |
 
 Example:
 ```bash
 export AKS_LAB_REGION=eastus
-./lab-01-dns-resolution.sh
+./cloudshell/aks-labs.sh 1
 ```
 
 ## Logs
 
-All sessions are logged to `LABs/logs/` with timestamps, user actions, and validation results.
+All sessions are logged to `logs/` with timestamps, user actions, and validation results.
 
 ## Cost Estimate
 
-Each lab creates a 2-node `Standard_DS2_v2` cluster (~$0.19/hr). A typical 1-hour lab session costs approximately **$0.20 USD**. Always clean up after finishing.
+Each lab creates a 2-node `Standard_D8ds_v5` cluster (~$0.80/hr). Labs typically take 30–60 minutes. **Always clean up after finishing.**
 
 ## File Structure
 
 ```
-LABs/
 ├── README.md
-├── bash/
-│   ├── lib/
-│   │   └── common.sh          # Shared framework
-│   ├── lab-01-dns-resolution.sh
-│   ├── lab-02-pod-pending.sh
-│   ├── lab-03-crashloop.sh
-│   ├── lab-04-image-pull.sh
-│   ├── lab-05-network-policy.sh
-│   ├── lab-06-node-taint.sh
-│   └── lab-07-nsg-blocking.sh
-├── powershell/
-│   ├── lib/
-│   │   └── Common.ps1         # Shared framework
-│   ├── Lab-01-DnsResolution.ps1
-│   ├── Lab-02-PodPending.ps1
-│   ├── Lab-03-CrashLoop.ps1
-│   ├── Lab-04-ImagePull.ps1
-│   ├── Lab-05-NetworkPolicy.ps1
-│   ├── Lab-06-NodeTaint.ps1
-│   └── Lab-07-NsgBlocking.ps1
+├── cloudshell/
+│   └── aks-labs.sh                # Cloud Shell launcher (recommended)
+├── curso/
+│   └── lecciones/
+│       ├── 01-fundamentos-kubectl/
+│       │   ├── leccion.md         # Lesson content
+│       │   └── lab-01.sh          # Lab script
+│       ├── 02-pods-y-contenedores/
+│       │   ├── leccion.md
+│       │   └── lab-02.sh
+│       └── ...                    # Lessons 03–10
+├── bash/                          # Standalone Bash labs
+│   ├── lib/common.sh
+│   └── lab-*.sh
+├── powershell/                    # Standalone PowerShell labs
+│   ├── lib/Common.ps1
+│   └── Lab-*.ps1
 └── logs/
 ```
 
