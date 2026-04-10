@@ -108,7 +108,7 @@ Override defaults via environment variables:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `AKS_LAB_REGION` | `canadacentral` | Azure region |
-| `AKS_LAB_NODE_COUNT` | `2` | Nodes per cluster |
+| `AKS_LAB_NODE_COUNT` | `1` | Nodes per cluster |
 | `AKS_LAB_VM_SIZE` | `Standard_D8ds_v5` | Node VM size |
 
 Example:
@@ -123,7 +123,7 @@ All sessions are logged to `logs/` with timestamps, user actions, and validation
 
 ## Cost Estimate
 
-Each lab creates a 2-node `Standard_D8ds_v5` cluster (~$0.80/hr). Labs typically take 30–60 minutes. **Always clean up after finishing.**
+Each lab creates a 1-node `Standard_D8ds_v5` cluster (~$0.40/hr). Labs typically take 30–60 minutes. **Always clean up after finishing.**
 
 ## File Structure
 

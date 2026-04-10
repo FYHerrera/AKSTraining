@@ -18,7 +18,7 @@ BLUE='\033[0;34m'; CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
 
 # ── Config ───────────────────────────────────────────────────────────────────
 REGION="${AKS_LAB_REGION:-canadacentral}"
-NODE_COUNT="${AKS_LAB_NODE_COUNT:-2}"
+NODE_COUNT="${AKS_LAB_NODE_COUNT:-1}"
 VM_SIZE="${AKS_LAB_VM_SIZE:-Standard_D8ds_v5}"
 K8S_VERSION="" RESOURCE_GROUP="" CLUSTER_NAME="" MC_RG=""
 LAB_START="" LOG_FILE=""

@@ -58,5 +58,5 @@ Las lecciones van de lo básico a lo avanzado. Se recomienda:
 
 ## Costo estimado
 
-Cada lab crea un cluster AKS temporal (~$0.80/hr con Standard_D8ds_v5).
+Cada lab crea un cluster AKS temporal (~$0.40/hr con Standard_D8ds_v5).
 Labs típicos duran 30-60 min. **Siempre hacer cleanup al terminar.**

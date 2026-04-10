@@ -17,7 +17,7 @@ BLUE='\033[0;34m'; CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
 
 # ── Defaults ─────────────────────────────────────────────────────────────────
 DEFAULT_REGION="${AKS_LAB_REGION:-canadacentral}"
-DEFAULT_NODE_COUNT="${AKS_LAB_NODE_COUNT:-2}"
+DEFAULT_NODE_COUNT="${AKS_LAB_NODE_COUNT:-1}"
 DEFAULT_VM_SIZE="${AKS_LAB_VM_SIZE:-Standard_D8ds_v5}"
 K8S_VERSION=""
 
