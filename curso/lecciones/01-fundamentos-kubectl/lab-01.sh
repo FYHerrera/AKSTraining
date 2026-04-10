@@ -92,17 +92,45 @@ get_latest_k8s_version() {
 }
 
 create_aks_cluster() {
-    local scenario="$1"; local extra_args="${2:-}"
-    CLUSTER_NAME=$(generate_name "$scenario"); RESOURCE_GROUP="${CLUSTER_NAME}-rg"
-    header "Creating Lab Environment"
-    info "Resource Group : $RESOURCE_GROUP"; info "Cluster Name   : $CLUSTER_NAME"
-    info "Region         : $DEFAULT_REGION";  info "Node Count     : $DEFAULT_NODE_COUNT"
-    info "VM Size        : $DEFAULT_VM_SIZE";  echo ""
+    local scenario="$1"
+    CLUSTER_NAME="aks-training"; RESOURCE_GROUP="aks-training-rg"
+    header "Lab Environment Setup"
+    info "Resource Group : $RESOURCE_GROUP"; info "Cluster Name   : $CLUSTER_NAME"; info "Region         : $DEFAULT_REGION"
+    # Check if cluster already exists
+    local cluster_state=""
+    if az group show --name "$RESOURCE_GROUP" &>/dev/null; then
+        cluster_state=$(az aks show -g "$RESOURCE_GROUP" -n "$CLUSTER_NAME" --query "provisioningState" -o tsv 2>/dev/null || echo "")
+    fi
+    if [[ "$cluster_state" == "Succeeded" ]]; then
+        ok "Cluster already exists and is Running — reusing it"
+        log "Fetching credentials..."; az aks get-credentials --resource-group "$RESOURCE_GROUP" --name "$CLUSTER_NAME" --overwrite-existing; ok "kubectl configured"
+        MC_RESOURCE_GROUP=$(az aks show -g "$RESOURCE_GROUP" -n "$CLUSTER_NAME" --query "nodeResourceGroup" -o tsv 2>/dev/null || echo "")
+        log "Cleaning previous lab resources..."
+        kubectl delete all --all -n default --wait=false 2>/dev/null || true
+        kubectl delete configmap,secret,pvc,networkpolicy --all -n default 2>/dev/null || true
+        for ns in production staging; do kubectl delete ns "$ns" --wait=false 2>/dev/null || true; done
+        ok "Previous resources cleaned"
+        verify_cluster_health; return 0
+    fi
+    if [[ "$cluster_state" == "Creating" ]] || [[ "$cluster_state" == "Updating" ]]; then
+        warn "Cluster is in '$cluster_state' state — waiting for it to be ready..."
+        az aks wait -g "$RESOURCE_GROUP" -n "$CLUSTER_NAME" --created --timeout 600 2>/dev/null || true
+        ok "Cluster is ready"
+        log "Fetching credentials..."; az aks get-credentials --resource-group "$RESOURCE_GROUP" --name "$CLUSTER_NAME" --overwrite-existing; ok "kubectl configured"
+        MC_RESOURCE_GROUP=$(az aks show -g "$RESOURCE_GROUP" -n "$CLUSTER_NAME" --query "nodeResourceGroup" -o tsv 2>/dev/null || echo "")
+        verify_cluster_health; return 0
+    fi
+    if [[ -n "$cluster_state" ]]; then
+        warn "Cluster is in '$cluster_state' state — cleaning up before recreating..."
+        az aks delete -g "$RESOURCE_GROUP" -n "$CLUSTER_NAME" --yes 2>/dev/null || true
+    fi
+    # Cluster doesn't exist — create fresh
+    info "Node Count     : $DEFAULT_NODE_COUNT"; info "VM Size        : $DEFAULT_VM_SIZE"; echo ""
     log "Creating resource group..."; az group create --name "$RESOURCE_GROUP" --location "$DEFAULT_REGION" -o none; ok "Resource group created"
     get_latest_k8s_version "$DEFAULT_REGION"; info "Kubernetes version: $K8S_VERSION"
     log "Creating AKS cluster (5-10 min)..."
-    local cmd="az aks create --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME --node-count $DEFAULT_NODE_COUNT --node-vm-size $DEFAULT_VM_SIZE --kubernetes-version $K8S_VERSION --location $DEFAULT_REGION --generate-ssh-keys --network-plugin azure -o none"
-    [[ -n "$extra_args" ]] && cmd="$cmd $extra_args"; eval "$cmd"; ok "AKS cluster created"
+    az aks create --resource-group "$RESOURCE_GROUP" --name "$CLUSTER_NAME" --node-count "$DEFAULT_NODE_COUNT" --node-vm-size "$DEFAULT_VM_SIZE" --kubernetes-version "$K8S_VERSION" --location "$DEFAULT_REGION" --generate-ssh-keys --network-plugin azure -o none
+    ok "AKS cluster created"
     log "Fetching credentials..."; az aks get-credentials --resource-group "$RESOURCE_GROUP" --name "$CLUSTER_NAME" --overwrite-existing; ok "kubectl configured"
     MC_RESOURCE_GROUP=$(az aks show -g "$RESOURCE_GROUP" -n "$CLUSTER_NAME" --query "nodeResourceGroup" -o tsv 2>/dev/null || echo "")
     verify_cluster_health
@@ -119,11 +147,23 @@ verify_cluster_health() {
 }
 
 cleanup_resources() {
-    echo ""; separator; echo -ne "${YELLOW}  Delete all lab resources? (y/n): ${NC}"; read -r response
-    if [[ "${response,,}" =~ ^y ]]; then
-        log "Deleting resource group $RESOURCE_GROUP..."; az group delete --name "$RESOURCE_GROUP" --yes --no-wait 2>/dev/null || true
-        ok "Deletion initiated."
-    else warn "Resources kept."; warn "Delete later: az group delete --name $RESOURCE_GROUP --yes"; fi
+    echo ""; separator
+    echo -e "${BOLD}  Cleanup Options:${NC}"
+    echo -e "    ${GREEN}[K]${NC}  Clean Kubernetes resources only (keep cluster for next lab)"
+    echo -e "    ${RED}[D]${NC}  Delete everything (resource group + cluster)"
+    echo -e "    ${CYAN}[S]${NC}  Skip cleanup"
+    echo ""; echo -ne "${BOLD}  Choose an option: ${NC}"; read -r response
+    case "${response,,}" in
+        k) log "Cleaning Kubernetes resources..."
+           kubectl delete all --all -n default --wait=false 2>/dev/null || true
+           kubectl delete configmap,secret,pvc,networkpolicy --all -n default 2>/dev/null || true
+           for ns in production staging; do kubectl delete ns "$ns" --wait=false 2>/dev/null || true; done
+           ok "Kubernetes resources cleaned. Cluster kept for next lab." ;;
+        d) log "Deleting resource group $RESOURCE_GROUP..."
+           az group delete --name "$RESOURCE_GROUP" --yes --no-wait 2>/dev/null || true
+           ok "Deletion initiated." ;;
+        *) warn "Resources kept."; warn "Delete later: az group delete --name $RESOURCE_GROUP --yes" ;;
+    esac
 }
 
 show_connect_info() {
