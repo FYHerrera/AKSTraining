@@ -255,11 +255,18 @@ deploy() {
     kubectl expose deployment api-backend --port=8080 --target-port=80 --type=ClusterIP 2>/dev/null || true
     kubectl wait --for=condition=Available deployment/api-backend --timeout=120s &>/dev/null || true
 
-    # Pre-create scavenger ConfigMap with placeholder values
-    kubectl create configmap scavenger-answers \
-        --from-literal=node-count=REPLACE_ME \
-        --from-literal=dns-pod=REPLACE_ME \
-        --from-literal=k8s-version=REPLACE_ME 2>/dev/null || true
+    # Pre-create scavenger ConfigMap with placeholder values (quoted so kubectl edit works)
+    kubectl apply -f - <<'EOF' 2>/dev/null || true
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scavenger-answers
+  namespace: default
+data:
+  node-count: "REPLACE_ME"
+  dns-pod: "REPLACE_ME"
+  k8s-version: "REPLACE_ME"
+EOF
 
     kubectl wait --for=condition=Ready pod --all -n production --timeout=120s &>/dev/null || true
     kubectl wait --for=condition=Ready pod --all -n staging --timeout=120s &>/dev/null || true

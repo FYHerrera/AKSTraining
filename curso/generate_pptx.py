@@ -312,13 +312,13 @@ def add_lab_slide(prs, lab_num, title, description, command, lang="en"):
     p.font.color.rgb = WHITE
     p.font.bold = True
 
-    # Description
-    txBox = slide.shapes.add_textbox(Inches(0.8), Inches(3.0), Inches(11), Inches(2))
+    # Description (scenario story)
+    txBox = slide.shapes.add_textbox(Inches(0.8), Inches(2.8), Inches(11), Inches(2.2))
     tf = txBox.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
     p.text = description
-    p.font.size = Pt(18)
+    p.font.size = Pt(16)
     p.font.color.rgb = RGBColor(180, 200, 220)
 
     # Command box
@@ -426,7 +426,7 @@ LESSONS = {
                   ["Recent events", "kubectl get events --sort-by='.lastTimestamp'"]]),
             ],
             "lab_title": "Application Down + Scavenger Hunt",
-            "lab_desc": "Fix a broken web-app (0 endpoints), then prove your kubectl skills with a scavenger hunt.",
+            "lab_desc": "It's Monday morning and the DevOps team receives an urgent alert: the company's web application is completely down — zero users can access it. As the on-call engineer, you must diagnose and restore service immediately. Once the fire is out, your team lead challenges you to a scavenger hunt to prove you truly know the cluster.",
             "lab_cmd": "lab-01.sh",
         },
         "es": {
@@ -503,7 +503,7 @@ LESSONS = {
                   ["Eventos recientes", "kubectl get events --sort-by='.lastTimestamp'"]]),
             ],
             "lab_title": "Aplicación Caída + Búsqueda del Tesoro",
-            "lab_desc": "Repara la web-app (0 endpoints) y demuestra tus habilidades kubectl con una búsqueda del tesoro.",
+            "lab_desc": "Es lunes por la mañana y el equipo DevOps recibe una alerta urgente: la aplicación web de la empresa está completamente caída — ningún usuario puede acceder. Como ingeniero de guardia, debes diagnosticar y restaurar el servicio de inmediato. Una vez apagado el incendio, tu líder te reta a una búsqueda del tesoro para demostrar que realmente conoces el cluster.",
             "lab_cmd": "lab-01.sh",
         },
     },
@@ -574,7 +574,7 @@ LESSONS = {
                   ["Test from inside", "kubectl exec -it <pod> -- /bin/sh"]]),
             ],
             "lab_title": "Fix ImagePullBackOff",
-            "lab_desc": "A pod has a wrong image tag. Diagnose and fix the issue.",
+            "lab_desc": "A junior developer just deployed a new version of the payment microservice, but customers are reporting checkout failures. The pod is stuck in ImagePullBackOff — the developer swears the image exists. Find what went wrong and get the service back online before the business loses more revenue.",
             "lab_cmd": "lab-02.sh",
         },
         "es": {
@@ -643,7 +643,7 @@ LESSONS = {
                   ["Probar desde dentro", "kubectl exec -it <pod> -- /bin/sh"]]),
             ],
             "lab_title": "Arreglar ImagePullBackOff",
-            "lab_desc": "Un pod tiene un tag de imagen incorrecta. Diagnostica y arregla el problema.",
+            "lab_desc": "Un desarrollador junior acaba de desplegar una nueva versión del microservicio de pagos, pero los clientes reportan fallos en el checkout. El pod está atascado en ImagePullBackOff — el desarrollador jura que la imagen existe. Encuentra qué salió mal y restaura el servicio antes de que el negocio pierda más ingresos.",
             "lab_cmd": "lab-02.sh",
         },
     },
@@ -699,7 +699,7 @@ LESSONS = {
                   ["Scale", "kubectl scale deploy/web-app --replicas=5"]]),
             ],
             "lab_title": "Failed Rollout",
-            "lab_desc": "A deployment has a failed rollout due to a bad liveness probe. Fix it or rollback.",
+            "lab_desc": "The team pushed a critical update to the API gateway, but the rollout is stuck — half the pods run the old version while new pods keep crashing. Users are experiencing intermittent errors. You must decide: fix the broken deployment forward, or rollback to save the day?",
             "lab_cmd": "lab-03.sh",
         },
         "es": {
@@ -753,7 +753,7 @@ LESSONS = {
                   ["Escalar", "kubectl scale deploy/web-app --replicas=5"]]),
             ],
             "lab_title": "Rollout Fallido",
-            "lab_desc": "Un deployment tiene un rollout fallido por un liveness probe mal configurado. Arréglalo o haz rollback.",
+            "lab_desc": "El equipo lanzó una actualización crítica del API gateway, pero el rollout está atascado — la mitad de los pods ejecutan la versión anterior y los nuevos siguen fallando. Los usuarios experimentan errores intermitentes. ¿Arreglas el deployment o haces rollback para salvar la situación?",
             "lab_cmd": "lab-03.sh",
         },
     },
@@ -811,7 +811,7 @@ LESSONS = {
                 ]),
             ],
             "lab_title": "Service Disconnect",
-            "lab_desc": "A Service can't connect to its pods. Find the mismatch and fix it.",
+            "lab_desc": "The frontend team just deployed their new React app. The deployment shows 3/3 pods running and healthy, but users accessing the LoadBalancer IP get 'connection refused'. The Service exists but something is wrong — can you find the invisible disconnect?",
             "lab_cmd": "lab-04.sh",
         },
         "es": {
@@ -867,7 +867,7 @@ LESSONS = {
                 ]),
             ],
             "lab_title": "Service Desconectado",
-            "lab_desc": "Un Service no puede conectar con sus pods. Encuentra el problema y arréglalo.",
+            "lab_desc": "El equipo de frontend acaba de desplegar su nueva app React. El deployment muestra 3/3 pods corriendo y saludables, pero los usuarios que acceden a la IP del LoadBalancer reciben 'connection refused'. El Service existe pero algo está mal — ¿puedes encontrar la desconexión invisible?",
             "lab_cmd": "lab-04.sh",
         },
     },
@@ -924,7 +924,7 @@ LESSONS = {
                 ]),
             ],
             "lab_title": "Missing Configuration",
-            "lab_desc": "An app crashes because of missing ConfigMap/Secret. Create the missing resources.",
+            "lab_desc": "A new microservice was deployed to production but it crashes immediately on startup. The developer says 'it works on my machine'. The logs show the app expects environment variables and config files that don't exist in the cluster. Create the missing ConfigMap and Secret to bring the app to life.",
             "lab_cmd": "lab-05.sh",
         },
         "es": {
@@ -979,7 +979,7 @@ LESSONS = {
                 ]),
             ],
             "lab_title": "Configuración Faltante",
-            "lab_desc": "Una app falla porque le falta ConfigMap/Secret. Crea los recursos faltantes.",
+            "lab_desc": "Un nuevo microservicio fue desplegado a producción pero se cae inmediatamente al iniciar. El desarrollador dice 'en mi máquina funciona'. Los logs muestran que la app espera variables de entorno y archivos de configuración que no existen en el cluster. Crea el ConfigMap y Secret faltantes para darle vida a la app.",
             "lab_cmd": "lab-05.sh",
         },
     },
@@ -1024,7 +1024,7 @@ LESSONS = {
                 ]),
             ],
             "lab_title": "PVC Stuck in Pending",
-            "lab_desc": "A PVC is stuck in Pending state. Find the cause and fix it.",
+            "lab_desc": "The database team deployed a new StatefulSet for the analytics engine, but the pod is stuck in Pending. The PersistentVolumeClaim won't bind to any storage. Without the database, the entire application stack is down. Find why the storage request is failing and fix it.",
             "lab_cmd": "lab-06.sh",
         },
         "es": {
@@ -1067,7 +1067,7 @@ LESSONS = {
                 ]),
             ],
             "lab_title": "PVC Atascado en Pending",
-            "lab_desc": "Un PVC está atascado en Pending. Encuentra la causa y arréglalo.",
+            "lab_desc": "El equipo de base de datos desplegó un nuevo StatefulSet para el motor de analítica, pero el pod está atascado en Pending. El PersistentVolumeClaim no se vincula a ningún almacenamiento. Sin la base de datos, toda la aplicación está caída. Encuentra por qué falla la solicitud de almacenamiento y arréglalo.",
             "lab_cmd": "lab-06.sh",
         },
     },
@@ -1124,7 +1124,7 @@ LESSONS = {
                   ["From labels correct?", "kubectl get pods --show-labels"]]),
             ],
             "lab_title": "Blocked Traffic",
-            "lab_desc": "A NetworkPolicy is blocking legitimate traffic. Find and fix the misconfigured rule.",
+            "lab_desc": "After a security audit, the team implemented Network Policies to harden the cluster. Now the order-processing service can't communicate with the payment API — legitimate business traffic is being blocked. Find the misconfigured policy and restore connectivity without removing all security.",
             "lab_cmd": "lab-07.sh",
         },
         "es": {
@@ -1179,7 +1179,7 @@ LESSONS = {
                   ["¿Labels from correctos?", "kubectl get pods --show-labels"]]),
             ],
             "lab_title": "Tráfico Bloqueado",
-            "lab_desc": "Una NetworkPolicy está bloqueando tráfico legítimo. Encuentra y arregla la regla.",
+            "lab_desc": "Tras una auditoría de seguridad, el equipo implementó Network Policies para endurecer el cluster. Ahora el servicio de procesamiento de pedidos no puede comunicarse con la API de pagos — el tráfico legítimo está bloqueado. Encuentra la política mal configurada y restaura la conectividad sin eliminar toda la seguridad.",
             "lab_cmd": "lab-07.sh",
         },
     },
@@ -1239,7 +1239,7 @@ LESSONS = {
                   ["Insufficient cpu/memory", "No resources", "Scale pool or reduce requests"]]),
             ],
             "lab_title": "Node Taint Issue",
-            "lab_desc": "Maintenance taints prevent pod scheduling. Find and resolve the issue.",
+            "lab_desc": "The infrastructure team performed weekend maintenance and tainted all nodes. Now it's Monday and new deployments can't schedule any pods — everything stays in Pending. The team forgot to remove the maintenance taints. Find the affected nodes and restore normal scheduling.",
             "lab_cmd": "lab-08.sh",
         },
         "es": {
@@ -1297,7 +1297,7 @@ LESSONS = {
                   ["Insufficient cpu/memory", "Sin recursos", "Escalar pool o reducir requests"]]),
             ],
             "lab_title": "Problema de Taints en Nodos",
-            "lab_desc": "Taints de mantenimiento impiden el scheduling. Encuentra y resuelve el problema.",
+            "lab_desc": "El equipo de infraestructura realizó mantenimiento el fin de semana y aplicó taints a todos los nodos. Ahora es lunes y los nuevos deployments no pueden programar pods — todo queda en Pending. Olvidaron quitar los taints de mantenimiento. Encuentra los nodos afectados y restaura el scheduling normal.",
             "lab_cmd": "lab-08.sh",
         },
     },
@@ -1364,7 +1364,7 @@ LESSONS = {
                 ]),
             ],
             "lab_title": "NSG Blocking Traffic",
-            "lab_desc": "A LoadBalancer Service has an IP but HTTP times out. Find and remove the NSG deny rule.",
+            "lab_desc": "The web application's LoadBalancer Service has an external IP and the pods are healthy, but customers report the site times out. Everything looks correct inside Kubernetes. The problem is outside the cluster — a rogue NSG rule in Azure is silently dropping all HTTP traffic. Hunt it down.",
             "lab_cmd": "lab-09.sh",
         },
         "es": {
@@ -1429,7 +1429,7 @@ LESSONS = {
                 ]),
             ],
             "lab_title": "NSG Bloqueando Tráfico",
-            "lab_desc": "Un Service LoadBalancer tiene IP pero HTTP da timeout. Encuentra y elimina la regla NSG deny.",
+            "lab_desc": "El Service LoadBalancer de la aplicación web tiene IP externa y los pods están saludables, pero los clientes reportan que el sitio da timeout. Todo parece correcto dentro de Kubernetes. El problema está fuera del cluster — una regla NSG en Azure está silenciosamente descartando todo el tráfico HTTP. Encuéntrala.",
             "lab_cmd": "lab-09.sh",
         },
     },
@@ -1509,7 +1509,7 @@ LESSONS = {
                   ["10 Advanced", "DISCOVER methodology"]]),
             ],
             "lab_title": "Multi-Problem Challenge",
-            "lab_desc": "A cluster has multiple issues combined. Apply everything you learned to fix them all.",
+            "lab_desc": "It's your worst nightmare: you arrive to find the production cluster in chaos. Multiple services are down, pods are crashing, traffic is blocked, and nothing works as expected. This is the final challenge — use everything you've learned across all lessons to identify and fix every issue, one by one.",
             "lab_cmd": "lab-10.sh",
         },
         "es": {
@@ -1587,7 +1587,7 @@ LESSONS = {
                   ["10 Avanzado", "Metodología DISCOVER"]]),
             ],
             "lab_title": "Desafío Multi-Problema",
-            "lab_desc": "Un cluster tiene múltiples problemas combinados. Aplica todo lo aprendido.",
+            "lab_desc": "Es tu peor pesadilla: llegas y encuentras el cluster de producción en caos total. Múltiples servicios caídos, pods fallando, tráfico bloqueado y nada funciona como debería. Este es el desafío final — usa todo lo aprendido en las lecciones anteriores para identificar y arreglar cada problema, uno por uno.",
             "lab_cmd": "lab-10.sh",
         },
     },
