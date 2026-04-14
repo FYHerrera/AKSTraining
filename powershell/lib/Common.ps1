@@ -10,7 +10,7 @@ $ErrorActionPreference = 'Stop'
 
 # ── Defaults ─────────────────────────────────────────────────────────────────
 $script:DefaultRegion    = if ($env:AKS_LAB_REGION)     { $env:AKS_LAB_REGION }     else { 'canadacentral' }
-$script:DefaultNodeCount = if ($env:AKS_LAB_NODE_COUNT) { $env:AKS_LAB_NODE_COUNT } else { 2 }
+$script:DefaultNodeCount = if ($env:AKS_LAB_NODE_COUNT) { $env:AKS_LAB_NODE_COUNT } else { 1 }
 $script:DefaultVmSize    = if ($env:AKS_LAB_VM_SIZE)    { $env:AKS_LAB_VM_SIZE }    else { 'Standard_D8ds_v5' }
 $script:K8sVersion       = ''
 
