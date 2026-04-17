@@ -266,6 +266,287 @@ def add_table_slide(prs, title, headers, rows, footer="AKS Troubleshooting Cours
             p.font.color.rgb = BLACK
 
 
+def add_two_column_slide(prs, title, left_title, left_bullets, right_title, right_bullets, footer="AKS Troubleshooting Course"):
+    """Add a slide with two columns for comparison."""
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_bg_shape(slide)
+    add_bottom_bar(slide, footer)
+
+    # Title
+    txBox = slide.shapes.add_textbox(Inches(0.6), Inches(0.15), Inches(12), Inches(0.9))
+    tf = txBox.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.text = title
+    p.font.size = Pt(28)
+    p.font.color.rgb = WHITE
+    p.font.bold = True
+
+    # Left column header
+    left_hdr = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.5), Inches(1.3), Inches(5.8), Inches(0.55)
+    )
+    left_hdr.fill.solid()
+    left_hdr.fill.fore_color.rgb = AZURE_BLUE
+    left_hdr.line.fill.background()
+    tf = left_hdr.text_frame
+    tf.paragraphs[0].text = left_title
+    tf.paragraphs[0].font.size = Pt(16)
+    tf.paragraphs[0].font.color.rgb = WHITE
+    tf.paragraphs[0].font.bold = True
+    tf.paragraphs[0].alignment = PP_ALIGN.CENTER
+    tf.vertical_anchor = MSO_ANCHOR.MIDDLE
+
+    # Left column bullets
+    txBox = slide.shapes.add_textbox(Inches(0.7), Inches(2.0), Inches(5.4), Inches(4.5))
+    tf = txBox.text_frame
+    tf.word_wrap = True
+    for i, bullet in enumerate(left_bullets):
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        if bullet.startswith(">>"):
+            p.text = bullet[2:].strip()
+            p.level = 1
+            p.font.size = Pt(14)
+            p.font.color.rgb = GRAY
+        else:
+            p.text = bullet
+            p.font.size = Pt(16)
+            p.font.color.rgb = BLACK
+        p.space_after = Pt(6)
+
+    # Right column header
+    right_hdr = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.8), Inches(1.3), Inches(5.8), Inches(0.55)
+    )
+    right_hdr.fill.solid()
+    right_hdr.fill.fore_color.rgb = DARK_BLUE
+    right_hdr.line.fill.background()
+    tf = right_hdr.text_frame
+    tf.paragraphs[0].text = right_title
+    tf.paragraphs[0].font.size = Pt(16)
+    tf.paragraphs[0].font.color.rgb = WHITE
+    tf.paragraphs[0].font.bold = True
+    tf.paragraphs[0].alignment = PP_ALIGN.CENTER
+    tf.vertical_anchor = MSO_ANCHOR.MIDDLE
+
+    # Right column bullets
+    txBox = slide.shapes.add_textbox(Inches(7.0), Inches(2.0), Inches(5.4), Inches(4.5))
+    tf = txBox.text_frame
+    tf.word_wrap = True
+    for i, bullet in enumerate(right_bullets):
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        if bullet.startswith(">>"):
+            p.text = bullet[2:].strip()
+            p.level = 1
+            p.font.size = Pt(14)
+            p.font.color.rgb = GRAY
+        else:
+            p.text = bullet
+            p.font.size = Pt(16)
+            p.font.color.rgb = BLACK
+        p.space_after = Pt(6)
+
+    # Divider line
+    divider = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE, Inches(6.45), Inches(1.3), Inches(0.03), Inches(5.3)
+    )
+    divider.fill.solid()
+    divider.fill.fore_color.rgb = LIGHT_GRAY
+    divider.line.fill.background()
+
+
+def add_flow_diagram_slide(prs, title, boxes, footer="AKS Troubleshooting Course"):
+    """Add a slide with a horizontal flow diagram.
+    boxes: list of (label, color, description) tuples.
+    """
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_bg_shape(slide)
+    add_bottom_bar(slide, footer)
+
+    # Title
+    txBox = slide.shapes.add_textbox(Inches(0.6), Inches(0.15), Inches(12), Inches(0.9))
+    tf = txBox.text_frame
+    p = tf.paragraphs[0]
+    p.text = title
+    p.font.size = Pt(28)
+    p.font.color.rgb = WHITE
+    p.font.bold = True
+
+    n = len(boxes)
+    total_width = 11.5
+    box_width = min(2.2, (total_width - (n - 1) * 0.6) / n)
+    arrow_width = 0.4
+    gap = (total_width - n * box_width - (n - 1) * arrow_width) / 2
+    start_x = 0.9 + gap
+
+    for i, (label, color, description) in enumerate(boxes):
+        x = start_x + i * (box_width + arrow_width)
+
+        # Box
+        box = slide.shapes.add_shape(
+            MSO_SHAPE.ROUNDED_RECTANGLE, Inches(x), Inches(2.2), Inches(box_width), Inches(1.0)
+        )
+        box.fill.solid()
+        box.fill.fore_color.rgb = color
+        box.line.fill.background()
+        box.shadow.inherit = False
+        tf = box.text_frame
+        tf.word_wrap = True
+        tf.vertical_anchor = MSO_ANCHOR.MIDDLE
+        p = tf.paragraphs[0]
+        p.text = label
+        p.font.size = Pt(16)
+        p.font.color.rgb = WHITE
+        p.font.bold = True
+        p.alignment = PP_ALIGN.CENTER
+
+        # Description below
+        txBox = slide.shapes.add_textbox(
+            Inches(x - 0.1), Inches(3.5), Inches(box_width + 0.2), Inches(2.5)
+        )
+        tf = txBox.text_frame
+        tf.word_wrap = True
+        p = tf.paragraphs[0]
+        p.text = description
+        p.font.size = Pt(13)
+        p.font.color.rgb = GRAY
+        p.alignment = PP_ALIGN.CENTER
+
+        # Arrow between boxes
+        if i < n - 1:
+            arrow_x = x + box_width + 0.02
+            arrow = slide.shapes.add_shape(
+                MSO_SHAPE.RIGHT_ARROW, Inches(arrow_x), Inches(2.5),
+                Inches(arrow_width - 0.04), Inches(0.4)
+            )
+            arrow.fill.solid()
+            arrow.fill.fore_color.rgb = LIGHT_GRAY
+            arrow.line.fill.background()
+
+
+def add_highlight_box_slide(prs, title, highlight_text, supporting_bullets, box_color=AZURE_BLUE, footer="AKS Troubleshooting Course"):
+    """Add a slide with a prominent highlighted box and supporting text below."""
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_bg_shape(slide)
+    add_bottom_bar(slide, footer)
+
+    # Title
+    txBox = slide.shapes.add_textbox(Inches(0.6), Inches(0.15), Inches(12), Inches(0.9))
+    tf = txBox.text_frame
+    p = tf.paragraphs[0]
+    p.text = title
+    p.font.size = Pt(28)
+    p.font.color.rgb = WHITE
+    p.font.bold = True
+
+    # Highlight box
+    hbox = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.0), Inches(1.5), Inches(11.3), Inches(1.8)
+    )
+    hbox.fill.solid()
+    hbox.fill.fore_color.rgb = box_color
+    hbox.line.fill.background()
+    tf = hbox.text_frame
+    tf.word_wrap = True
+    tf.vertical_anchor = MSO_ANCHOR.MIDDLE
+    p = tf.paragraphs[0]
+    p.text = highlight_text
+    p.font.size = Pt(22)
+    p.font.color.rgb = WHITE
+    p.font.bold = True
+    p.alignment = PP_ALIGN.CENTER
+
+    # Supporting bullets
+    txBox = slide.shapes.add_textbox(Inches(1.0), Inches(3.8), Inches(11.3), Inches(3.0))
+    tf = txBox.text_frame
+    tf.word_wrap = True
+    for i, bullet in enumerate(supporting_bullets):
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        if bullet.startswith(">>"):
+            p.text = bullet[2:].strip()
+            p.level = 1
+            p.font.size = Pt(14)
+            p.font.color.rgb = GRAY
+        else:
+            p.text = bullet
+            p.font.size = Pt(17)
+            p.font.color.rgb = BLACK
+        p.space_after = Pt(8)
+
+
+def add_icon_cards_slide(prs, title, cards, footer="AKS Troubleshooting Course"):
+    """Add a slide with icon-style cards (emoji + title + description).
+    cards: list of (icon, card_title, description) tuples (max 4).
+    """
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    add_bg_shape(slide)
+    add_bottom_bar(slide, footer)
+
+    # Title
+    txBox = slide.shapes.add_textbox(Inches(0.6), Inches(0.15), Inches(12), Inches(0.9))
+    tf = txBox.text_frame
+    p = tf.paragraphs[0]
+    p.text = title
+    p.font.size = Pt(28)
+    p.font.color.rgb = WHITE
+    p.font.bold = True
+
+    n = len(cards)
+    card_width = 2.6
+    gap = (12.0 - n * card_width) / (n + 1)
+
+    colors = [AZURE_BLUE, DARK_BLUE, GREEN, ORANGE]
+
+    for i, (icon, card_title, description) in enumerate(cards):
+        x = 0.65 + gap + i * (card_width + gap)
+
+        # Card background
+        card = slide.shapes.add_shape(
+            MSO_SHAPE.ROUNDED_RECTANGLE, Inches(x), Inches(1.5), Inches(card_width), Inches(5.0)
+        )
+        card.fill.solid()
+        card.fill.fore_color.rgb = RGBColor(245, 248, 252)
+        card.line.color.rgb = colors[i % len(colors)]
+        card.line.width = Pt(2)
+
+        # Top accent bar
+        accent = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(x), Inches(1.5), Inches(card_width), Inches(0.08)
+        )
+        accent.fill.solid()
+        accent.fill.fore_color.rgb = colors[i % len(colors)]
+        accent.line.fill.background()
+
+        # Icon
+        txBox2 = slide.shapes.add_textbox(Inches(x + 0.2), Inches(1.8), Inches(card_width - 0.4), Inches(0.7))
+        tf2 = txBox2.text_frame
+        p2 = tf2.paragraphs[0]
+        p2.text = icon
+        p2.font.size = Pt(32)
+        p2.alignment = PP_ALIGN.CENTER
+
+        # Card title
+        txBox2 = slide.shapes.add_textbox(Inches(x + 0.2), Inches(2.5), Inches(card_width - 0.4), Inches(0.6))
+        tf2 = txBox2.text_frame
+        tf2.word_wrap = True
+        p2 = tf2.paragraphs[0]
+        p2.text = card_title
+        p2.font.size = Pt(15)
+        p2.font.color.rgb = colors[i % len(colors)]
+        p2.font.bold = True
+        p2.alignment = PP_ALIGN.CENTER
+
+        # Card description
+        txBox2 = slide.shapes.add_textbox(Inches(x + 0.2), Inches(3.2), Inches(card_width - 0.4), Inches(3.0))
+        tf2 = txBox2.text_frame
+        tf2.word_wrap = True
+        p2 = tf2.paragraphs[0]
+        p2.text = description
+        p2.font.size = Pt(12)
+        p2.font.color.rgb = GRAY
+        p2.alignment = PP_ALIGN.CENTER
+
+
 def add_lab_slide(prs, lab_num, title, description, command, lang="en"):
     """Add a lab exercise slide."""
     slide = prs.slides.add_slide(prs.slide_layouts[6])
@@ -510,140 +791,420 @@ LESSONS = {
     2: {
         "en": {
             "title": "Pods & Containers",
-            "subtitle": "Understand pod lifecycle, diagnose image errors, and read events",
+            "subtitle": "Understand pod lifecycle, diagnose image errors, and fix deployments",
             "slides": [
-                ("section", "What is a Pod?", "The smallest unit in Kubernetes"),
-                ("content", "Pod Basics", [
-                    "A Pod contains one or more containers sharing network and storage",
-                    "Pods are ephemeral – when they die, data is lost",
-                    "Each pod gets its own IP address within the cluster",
-                    "Defined using YAML manifests with apiVersion, kind, metadata, spec",
+                # ── Section 1: What is a Pod ──
+                ("section", "What is a Pod?", "The smallest deployable unit in Kubernetes"),
+                ("icon_cards", "Anatomy of a Pod", [
+                    ("\U0001F4E6", "Container(s)", "One or more containers running your application code. All containers in a pod share the same network (localhost) and storage volumes."),
+                    ("\U0001F310", "Pod IP", "Each pod receives a unique IP address inside the cluster. Other pods can reach it directly using this IP."),
+                    ("\U0001F4BE", "Shared Storage", "Volumes defined at the pod level can be mounted into any container within the pod, enabling data sharing."),
+                    ("\u26A1", "Ephemeral", "Pods are disposable. When a pod is deleted or crashes, it is not repaired — a new pod is created to replace it."),
                 ]),
-                ("table", "Pod Lifecycle States", ["State", "Meaning"],
-                 [["Pending", "Waiting for node assignment or image pull"],
-                  ["Running", "At least one container is running"],
-                  ["Succeeded", "All containers exited with code 0"],
-                  ["Failed", "At least one container exited with error"],
-                  ["CrashLoopBackOff", "Container keeps crashing and restarting"],
-                  ["ImagePullBackOff", "Cannot download the container image"]]),
-                ("section", "Container Images", ""),
-                ("content", "Image Format & Errors", [
-                    "Format: registry/repository:tag",
-                    ">> nginx:1.25 (Docker Hub implicit)",
-                    ">> mcr.microsoft.com/azuredocs/aci-helloworld (MCR)",
-                    ">> myacr.azurecr.io/myapp:v2 (Azure Container Registry)",
-                    "",
-                    "ErrImagePull – Image or tag doesn't exist, or no permissions",
-                    "ImagePullBackOff – Retries failing with exponential backoff",
+                ("code", "Pod YAML Manifest", [
+                    "apiVersion: v1",
+                    "kind: Pod",
+                    "metadata:",
+                    "  name: web-app              # Pod name",
+                    "  labels:",
+                    "    app: web-app             # Labels for selectors",
+                    "spec:",
+                    "  containers:",
+                    "  - name: nginx              # Container name",
+                    "    image: nginx:1.25         # registry/repo:tag",
+                    "    ports:",
+                    "    - containerPort: 80",
+                    "    resources:",
+                    "      requests:              # Minimum guaranteed",
+                    "        cpu: 100m",
+                    "        memory: 128Mi",
+                    "      limits:                # Maximum allowed",
+                    "        cpu: 500m",
+                    "        memory: 256Mi",
                 ]),
-                ("section", "Diagnosing Pods", "The 3-step process"),
-                ("code", "Step 1: View Status", [
-                    "kubectl get pods",
-                    "# NAME       READY   STATUS             RESTARTS   AGE",
-                    "# web-app    0/1     ImagePullBackOff   0          5m",
+
+                # ── Section 2: Pod Lifecycle ──
+                ("section", "Pod Lifecycle", "Understanding pod states is key to troubleshooting"),
+                ("flow", "Pod Lifecycle Flow", [
+                    ("Pending", ORANGE, "Waiting for node\nassignment or\nimage download"),
+                    ("Running", GREEN, "At least one container\nis running.\nNormal state."),
+                    ("Succeeded", AZURE_BLUE, "All containers\nexited with code 0.\n(Jobs, CronJobs)"),
+                    ("Failed", RED, "At least one container\nexited with error.\n(exit code \u2260 0)"),
                 ]),
-                ("code", "Step 2: Describe (Always Check Events!)", [
-                    "kubectl describe pod web-app",
+                ("table", "Error States You Will Encounter", ["State", "What It Means", "Common Cause"],
+                 [["ImagePullBackOff", "Cannot download the container image", "Wrong image name/tag, private registry without auth"],
+                  ["ErrImagePull", "First attempt to pull image failed", "Image does not exist in the registry"],
+                  ["CrashLoopBackOff", "Container keeps crashing and restarting", "App error, wrong command, missing config"],
+                  ["OOMKilled", "Container exceeded memory limit", "Memory limit too low or memory leak"],
+                  ["Pending (stuck)", "Pod cannot be scheduled", "Insufficient CPU/memory on nodes"]]),
+
+                # ── Section 3: Container Images ──
+                ("section", "Container Images", "How Kubernetes finds and pulls your application"),
+                ("highlight", "Image Format", "registry / repository : tag",
+                 [
+                    "nginx:1.25  \u2192  Docker Hub (implicit registry, most common)",
+                    "mcr.microsoft.com/azuredocs/aci-helloworld  \u2192  Microsoft Container Registry",
+                    "myacr.azurecr.io/myapp:v2  \u2192  Azure Container Registry (private)",
                     "",
-                    "# Events:",
-                    "#  Warning  Failed  kubelet  Failed to pull image \"nginx:99.99\"",
-                    "#  Warning  Failed  kubelet  Error: ErrImagePull",
-                    "#  Normal   BackOff kubelet  Back-off pulling image",
+                    "If the tag does not exist, Kubernetes reports ErrImagePull",
+                    "After repeated failures, the status becomes ImagePullBackOff",
+                 ]),
+                ("two_column", "Image Pull: Success vs Failure",
+                    "\u2705 Successful Pull", [
+                        "Image and tag exist in the registry",
+                        "Cluster has network access to the registry",
+                        "If private: imagePullSecrets configured",
+                        "Pod transitions: Pending \u2192 Running",
+                    ],
+                    "\u274C Failed Pull", [
+                        "Image name is misspelled or tag does not exist",
+                        "Registry is unreachable (firewall, DNS)",
+                        "Private registry without credentials",
+                        "Pod stays stuck in ImagePullBackOff",
+                    ],
+                ),
+
+                # ── Section 4: Diagnosis ──
+                ("section", "Diagnosing Pod Problems", "The 3-step troubleshooting process"),
+                ("flow", "Diagnosis Workflow", [
+                    ("1. GET", AZURE_BLUE, "kubectl get pods\n\nSee STATUS column:\nImagePullBackOff?\nCrashLoopBackOff?"),
+                    ("2. DESCRIBE", DARK_BLUE, "kubectl describe pod\n\nScroll to EVENTS.\nFind the error message\nand root cause."),
+                    ("3. LOGS", GREEN, "kubectl logs <pod>\n\nSee app output.\nUse --previous for\ncrashed containers."),
                 ]),
-                ("code", "Step 3: Logs", [
-                    "# Current logs",
-                    "kubectl logs web-app",
+                ("code", "Step 1: kubectl get pods", [
+                    "$ kubectl get pods",
                     "",
-                    "# Previous container logs (after crash)",
-                    "kubectl logs web-app --previous",
+                    "NAME                       READY   STATUS             RESTARTS   AGE",
+                    "web-app-6d8f9b4c7-abc12   0/1     ImagePullBackOff   0          5m",
+                    "web-app-6d8f9b4c7-def34   0/1     ImagePullBackOff   0          5m",
+                    "web-app-6d8f9b4c7-ghi56   0/1     ImagePullBackOff   0          5m",
                     "",
-                    "# Logs by label",
+                    "# STATUS tells you the problem category",
+                    "# READY 0/1 means zero containers are ready",
+                    "# 3 pods failing = Deployment with 3 replicas",
+                ]),
+                ("code", "Step 2: kubectl describe pod (EVENTS!)", [
+                    "$ kubectl describe pod web-app-6d8f9b4c7-abc12",
+                    "",
+                    "# ... (scroll to the bottom for Events)",
+                    "",
+                    "Events:",
+                    "  Type     Reason     Age   Message",
+                    "  ----     ------     ----  -------",
+                    "  Normal   Scheduled  5m    Successfully assigned default/web-app...",
+                    "  Normal   Pulling    5m    Pulling image \"nginx:99.99.99-nonexistent\"",
+                    "  Warning  Failed     5m    Failed to pull: tag does not exist",
+                    "  Warning  Failed     5m    Error: ErrImagePull",
+                    "  Normal   BackOff    4m    Back-off pulling image",
+                    "  Warning  Failed     4m    Error: ImagePullBackOff",
+                ]),
+                ("highlight", "Key Insight: Events Tell the Story",
+                    "The Events section in 'kubectl describe' always reveals the root cause.\nFor ImagePullBackOff, it shows exactly which image and tag failed.",
+                 [
+                    "Always scroll to the BOTTOM of describe output to find Events",
+                    "Look for 'Warning' type events — they indicate problems",
+                    "The Message column contains the specific error details",
+                    "In our case: 'Failed to pull image nginx:99.99.99-nonexistent'",
+                 ]),
+                ("code", "Step 3: kubectl logs", [
+                    "# If the container started (Running/CrashLoopBackOff):",
+                    "kubectl logs web-app-6d8f9b4c7-abc12",
+                    "",
+                    "# If it crashed, see previous container logs:",
+                    "kubectl logs web-app-6d8f9b4c7-abc12 --previous",
+                    "",
+                    "# View logs for all pods with a label:",
                     "kubectl logs -l app=web-app --all-containers",
+                    "",
+                    "# NOTE: For ImagePullBackOff, there are NO logs",
+                    "# because the container never started!",
                 ]),
-                ("content", "Resources: Requests & Limits", [
-                    "requests – Minimum guaranteed resources (scheduler uses this)",
-                    "limits – Maximum allowed (exceeding memory → OOMKilled)",
-                    ">> kubectl top pods",
-                    ">> kubectl top nodes",
+
+                # ── Section 5: Fixing the Problem ──
+                ("section", "Fixing a Broken Deployment", "From diagnosis to resolution"),
+                ("code", "Finding the Bad Image in a Deployment", [
+                    "# View the deployment's current image",
+                    "kubectl get deployment web-app -o wide",
+                    "",
+                    "# Or see full YAML (look at spec.containers.image)",
+                    "kubectl get deployment web-app -o yaml | grep image:",
+                    "",
+                    "# Output:",
+                    "#   image: nginx:99.99.99-nonexistent    <-- THE PROBLEM!",
                 ]),
-                ("table", "Diagnosis Quick Reference", ["To diagnose...", "Use..."],
-                 [["Pod status", "kubectl get pods"],
-                  ["Why it failed", "kubectl describe pod <name> → Events"],
-                  ["App output", "kubectl logs <pod>"],
-                  ["Previous crash", "kubectl logs <pod> --previous"],
-                  ["Test from inside", "kubectl exec -it <pod> -- /bin/sh"]]),
+                ("code", "Fixing the Image (The Solution)", [
+                    "# Option 1: Set the correct image directly",
+                    "kubectl set image deployment/web-app nginx=nginx:1.25",
+                    "",
+                    "# Option 2: Edit the deployment interactively",
+                    "kubectl edit deployment web-app",
+                    "# Change: image: nginx:99.99.99-nonexistent",
+                    "# To:     image: nginx:1.25",
+                    "",
+                    "# Verify the fix:",
+                    "kubectl get pods -w   # Watch pods transition to Running",
+                ]),
+
+                # ── Section 6: Multi-container Pods ──
+                ("section", "Multi-Container Pods", "Init containers and sidecars"),
+                ("two_column", "Multi-Container Patterns",
+                    "Init Containers", [
+                        "Run BEFORE the main container",
+                        "Must complete successfully first",
+                        "Used for: DB migrations, config setup, waiting for dependencies",
+                        "If init fails: Pod stuck in Init:Error",
+                    ],
+                    "Sidecar Containers", [
+                        "Run ALONGSIDE the main container",
+                        "Share network and storage",
+                        "Used for: logging agents, proxies, monitoring",
+                        "If sidecar crashes: may affect main app",
+                    ],
+                ),
+
+                # ── Section 7: Resources ──
+                ("section", "Resource Management", "Requests, Limits, and OOMKilled"),
+                ("two_column", "Requests vs Limits",
+                    "Requests (Minimum)", [
+                        "What the pod is guaranteed to get",
+                        "The scheduler uses this to place pods on nodes",
+                        "If a node lacks capacity \u2192 pod stays Pending",
+                        ">> kubectl describe node | grep Allocated",
+                    ],
+                    "Limits (Maximum)", [
+                        "The hard ceiling a container can use",
+                        "Exceed CPU limit \u2192 throttled (slower, not killed)",
+                        "Exceed memory limit \u2192 OOMKilled immediately",
+                        ">> kubectl top pods (current usage)",
+                    ],
+                ),
+
+                # ── Summary & Lab Prep ──
+                ("table", "Complete Diagnosis Reference", ["Symptom", "Command", "What to Look For"],
+                 [["Pod not starting", "kubectl get pods", "STATUS column: ImagePullBackOff, Pending, etc."],
+                  ["Why is it failing?", "kubectl describe pod <name>", "Events section at the bottom"],
+                  ["App crashes", "kubectl logs <pod>", "Error messages from the application"],
+                  ["Previous crash info", "kubectl logs <pod> --previous", "Logs before the container restarted"],
+                  ["Wrong image", "kubectl get deploy -o yaml | grep image", "Verify the image:tag is correct"],
+                  ["Fix deployment image", "kubectl set image deploy/<name> <ctr>=<img:tag>", "Pods should transition to Running"]]),
+                ("table", "Lab Preparation: Commands You Will Need", ["Step", "Command", "Purpose"],
+                 [["1", "kubectl get pods", "See which pods are failing and their status"],
+                  ["2", "kubectl describe pod <name>", "Read Events to find the bad image"],
+                  ["3", "kubectl get deploy web-app -o yaml | grep image", "Confirm the incorrect image tag"],
+                  ["4", "kubectl set image deployment/web-app nginx=nginx:1.25", "Fix the image to a valid tag"],
+                  ["5", "kubectl get pods -w", "Watch pods recover to Running state"]]),
             ],
             "lab_title": "Fix ImagePullBackOff",
-            "lab_desc": "A junior developer just deployed a new version of the payment microservice, but customers are reporting checkout failures. The pod is stuck in ImagePullBackOff — the developer swears the image exists. Find what went wrong and get the service back online before the business loses more revenue.",
+            "lab_desc": "A deployment called 'web-app' has 3 replicas stuck in ImagePullBackOff. The image tag is wrong. Use the 3-step diagnosis process (get \u2192 describe \u2192 fix) to identify the bad image and set a valid one. All 3 replicas must be Running to pass.",
             "lab_cmd": "lab-02.sh",
         },
         "es": {
             "title": "Pods y Contenedores",
-            "subtitle": "Ciclo de vida de pods, diagnosticar errores de imagen y leer eventos",
+            "subtitle": "Ciclo de vida de pods, diagnosticar errores de imagen y arreglar deployments",
             "slides": [
-                ("section", "¿Qué es un Pod?", "La unidad más pequeña en Kubernetes"),
-                ("content", "Fundamentos del Pod", [
-                    "Un Pod contiene uno o más contenedores que comparten red y almacenamiento",
-                    "Los pods son efímeros – cuando mueren, los datos se pierden",
-                    "Cada pod recibe su propia IP dentro del cluster",
-                    "Se definen con manifiestos YAML: apiVersion, kind, metadata, spec",
+                # ── Sección 1: ¿Qué es un Pod? ──
+                ("section", "¿Qué es un Pod?", "La unidad desplegable más pequeña en Kubernetes"),
+                ("icon_cards", "Anatomía de un Pod", [
+                    ("\U0001F4E6", "Contenedor(es)", "Uno o más contenedores ejecutando tu aplicación. Todos comparten la misma red (localhost) y volúmenes de almacenamiento."),
+                    ("\U0001F310", "IP del Pod", "Cada pod recibe una IP única dentro del cluster. Otros pods pueden comunicarse directamente usando esta IP."),
+                    ("\U0001F4BE", "Almacenamiento Compartido", "Los volúmenes definidos a nivel de pod se pueden montar en cualquier contenedor del pod, permitiendo compartir datos."),
+                    ("\u26A1", "Efímero", "Los pods son desechables. Cuando un pod se elimina o falla, no se repara — se crea uno nuevo para reemplazarlo."),
                 ]),
-                ("table", "Estados del Pod", ["Estado", "Significado"],
-                 [["Pending", "Esperando asignación a nodo o descarga de imagen"],
-                  ["Running", "Al menos un contenedor corriendo"],
-                  ["Succeeded", "Todos los contenedores terminaron exitosamente"],
-                  ["Failed", "Al menos un contenedor falló"],
-                  ["CrashLoopBackOff", "El contenedor se reinicia constantemente"],
-                  ["ImagePullBackOff", "No puede descargar la imagen"]]),
-                ("section", "Imágenes de Contenedores", ""),
-                ("content", "Formato y Errores de Imagen", [
-                    "Formato: registro/repositorio:tag",
-                    ">> nginx:1.25 (Docker Hub implícito)",
-                    ">> mcr.microsoft.com/azuredocs/aci-helloworld (MCR)",
-                    ">> myacr.azurecr.io/myapp:v2 (Azure Container Registry)",
-                    "",
-                    "ErrImagePull – Imagen o tag no existe, o sin permisos",
-                    "ImagePullBackOff – Reintentos fallando con backoff exponencial",
+                ("code", "Manifiesto YAML de un Pod", [
+                    "apiVersion: v1",
+                    "kind: Pod",
+                    "metadata:",
+                    "  name: web-app              # Nombre del pod",
+                    "  labels:",
+                    "    app: web-app             # Labels para selectores",
+                    "spec:",
+                    "  containers:",
+                    "  - name: nginx              # Nombre del contenedor",
+                    "    image: nginx:1.25         # registro/repo:tag",
+                    "    ports:",
+                    "    - containerPort: 80",
+                    "    resources:",
+                    "      requests:              # Mínimo garantizado",
+                    "        cpu: 100m",
+                    "        memory: 128Mi",
+                    "      limits:                # Máximo permitido",
+                    "        cpu: 500m",
+                    "        memory: 256Mi",
                 ]),
-                ("section", "Diagnóstico de Pods", "El proceso de 3 pasos"),
-                ("code", "Paso 1: Ver Estado", [
-                    "kubectl get pods",
-                    "# NAME       READY   STATUS             RESTARTS   AGE",
-                    "# web-app    0/1     ImagePullBackOff   0          5m",
+
+                # ── Sección 2: Ciclo de Vida ──
+                ("section", "Ciclo de Vida del Pod", "Entender los estados es clave para troubleshooting"),
+                ("flow", "Flujo del Ciclo de Vida", [
+                    ("Pending", ORANGE, "Esperando asignación\na un nodo o descarga\nde la imagen"),
+                    ("Running", GREEN, "Al menos un contenedor\nestá corriendo.\nEstado normal."),
+                    ("Succeeded", AZURE_BLUE, "Todos los contenedores\nterminaron con código 0.\n(Jobs, CronJobs)"),
+                    ("Failed", RED, "Al menos un contenedor\nterminó con error.\n(código de salida \u2260 0)"),
                 ]),
-                ("code", "Paso 2: Describe (¡Siempre Revisar Events!)", [
-                    "kubectl describe pod web-app",
+                ("table", "Estados de Error que Encontrarás", ["Estado", "Qué Significa", "Causa Común"],
+                 [["ImagePullBackOff", "No puede descargar la imagen", "Nombre/tag incorrecto, registro privado sin auth"],
+                  ["ErrImagePull", "Primer intento de pull falló", "La imagen no existe en el registro"],
+                  ["CrashLoopBackOff", "El contenedor se reinicia constantemente", "Error de app, comando incorrecto, config faltante"],
+                  ["OOMKilled", "El contenedor excedió el límite de memoria", "Límite de memoria muy bajo o memory leak"],
+                  ["Pending (atascado)", "El pod no puede ser programado", "CPU/memoria insuficiente en los nodos"]]),
+
+                # ── Sección 3: Imágenes de Contenedores ──
+                ("section", "Imágenes de Contenedores", "Cómo Kubernetes encuentra y descarga tu aplicación"),
+                ("highlight", "Formato de Imagen", "registro / repositorio : tag",
+                 [
+                    "nginx:1.25  \u2192  Docker Hub (registro implícito, el más común)",
+                    "mcr.microsoft.com/azuredocs/aci-helloworld  \u2192  Microsoft Container Registry",
+                    "myacr.azurecr.io/myapp:v2  \u2192  Azure Container Registry (privado)",
                     "",
-                    "# Events:",
-                    "#  Warning  Failed  kubelet  Failed to pull image \"nginx:99.99\"",
-                    "#  Warning  Failed  kubelet  Error: ErrImagePull",
-                    "#  Normal   BackOff kubelet  Back-off pulling image",
+                    "Si el tag no existe, Kubernetes reporta ErrImagePull",
+                    "Después de fallos repetidos, el estado cambia a ImagePullBackOff",
+                 ]),
+                ("two_column", "Pull de Imagen: Éxito vs Fallo",
+                    "\u2705 Pull Exitoso", [
+                        "La imagen y el tag existen en el registro",
+                        "El cluster tiene acceso de red al registro",
+                        "Si es privado: imagePullSecrets configurado",
+                        "Pod transiciona: Pending \u2192 Running",
+                    ],
+                    "\u274C Pull Fallido", [
+                        "Nombre de imagen mal escrito o tag inexistente",
+                        "Registro inalcanzable (firewall, DNS)",
+                        "Registro privado sin credenciales",
+                        "Pod queda atascado en ImagePullBackOff",
+                    ],
+                ),
+
+                # ── Sección 4: Diagnóstico ──
+                ("section", "Diagnosticando Problemas de Pods", "El proceso de troubleshooting en 3 pasos"),
+                ("flow", "Flujo de Diagnóstico", [
+                    ("1. GET", AZURE_BLUE, "kubectl get pods\n\nVer columna STATUS:\n¿ImagePullBackOff?\n¿CrashLoopBackOff?"),
+                    ("2. DESCRIBE", DARK_BLUE, "kubectl describe pod\n\nIr a la sección EVENTS.\nEncontrar el mensaje\nde error y la causa."),
+                    ("3. LOGS", GREEN, "kubectl logs <pod>\n\nVer salida de la app.\nUsar --previous para\ncontainers crasheados."),
                 ]),
-                ("code", "Paso 3: Logs", [
-                    "# Logs actuales",
-                    "kubectl logs web-app",
+                ("code", "Paso 1: kubectl get pods", [
+                    "$ kubectl get pods",
                     "",
-                    "# Logs del container anterior (crasheado)",
-                    "kubectl logs web-app --previous",
+                    "NAME                       READY   STATUS             RESTARTS   AGE",
+                    "web-app-6d8f9b4c7-abc12   0/1     ImagePullBackOff   0          5m",
+                    "web-app-6d8f9b4c7-def34   0/1     ImagePullBackOff   0          5m",
+                    "web-app-6d8f9b4c7-ghi56   0/1     ImagePullBackOff   0          5m",
                     "",
-                    "# Logs por label",
+                    "# STATUS te indica la categoría del problema",
+                    "# READY 0/1 significa cero contenedores listos",
+                    "# 3 pods fallando = Deployment con 3 réplicas",
+                ]),
+                ("code", "Paso 2: kubectl describe pod (¡EVENTS!)", [
+                    "$ kubectl describe pod web-app-6d8f9b4c7-abc12",
+                    "",
+                    "# ... (ir al final para ver los Events)",
+                    "",
+                    "Events:",
+                    "  Type     Reason     Age   Message",
+                    "  ----     ------     ----  -------",
+                    "  Normal   Scheduled  5m    Successfully assigned default/web-app...",
+                    "  Normal   Pulling    5m    Pulling image \"nginx:99.99.99-nonexistent\"",
+                    "  Warning  Failed     5m    Failed to pull: tag does not exist",
+                    "  Warning  Failed     5m    Error: ErrImagePull",
+                    "  Normal   BackOff    4m    Back-off pulling image",
+                    "  Warning  Failed     4m    Error: ImagePullBackOff",
+                ]),
+                ("highlight", "Insight Clave: Los Events Cuentan la Historia",
+                    "La sección Events en 'kubectl describe' siempre revela la causa raíz.\nPara ImagePullBackOff, muestra exactamente qué imagen y tag fallaron.",
+                 [
+                    "Siempre ir al FINAL de la salida de describe para encontrar Events",
+                    "Buscar eventos tipo 'Warning' — indican problemas",
+                    "La columna Message contiene los detalles específicos del error",
+                    "En nuestro caso: 'Failed to pull image nginx:99.99.99-nonexistent'",
+                 ]),
+                ("code", "Paso 3: kubectl logs", [
+                    "# Si el contenedor arrancó (Running/CrashLoopBackOff):",
+                    "kubectl logs web-app-6d8f9b4c7-abc12",
+                    "",
+                    "# Si crasheó, ver logs del contenedor anterior:",
+                    "kubectl logs web-app-6d8f9b4c7-abc12 --previous",
+                    "",
+                    "# Ver logs de todos los pods con un label:",
                     "kubectl logs -l app=web-app --all-containers",
+                    "",
+                    "# NOTA: Para ImagePullBackOff, NO hay logs",
+                    "# ¡porque el contenedor nunca arrancó!",
                 ]),
-                ("content", "Resources: Requests y Limits", [
-                    "requests – Mínimo garantizado (el scheduler usa esto)",
-                    "limits – Máximo permitido (exceder memoria → OOMKilled)",
-                    ">> kubectl top pods",
-                    ">> kubectl top nodes",
+
+                # ── Sección 5: Arreglar el Problema ──
+                ("section", "Arreglando un Deployment Roto", "Del diagnóstico a la solución"),
+                ("code", "Encontrar la Imagen Incorrecta en un Deployment", [
+                    "# Ver la imagen actual del deployment",
+                    "kubectl get deployment web-app -o wide",
+                    "",
+                    "# O ver el YAML completo (buscar spec.containers.image)",
+                    "kubectl get deployment web-app -o yaml | grep image:",
+                    "",
+                    "# Salida:",
+                    "#   image: nginx:99.99.99-nonexistent    <-- ¡EL PROBLEMA!",
                 ]),
-                ("table", "Referencia Rápida de Diagnóstico", ["Para diagnosticar...", "Usa..."],
-                 [["Estado del pod", "kubectl get pods"],
-                  ["Por qué falló", "kubectl describe pod <nombre> → Events"],
-                  ["Salida de la app", "kubectl logs <pod>"],
-                  ["Crash anterior", "kubectl logs <pod> --previous"],
-                  ["Probar desde dentro", "kubectl exec -it <pod> -- /bin/sh"]]),
+                ("code", "Arreglar la Imagen (La Solución)", [
+                    "# Opción 1: Establecer la imagen correcta directamente",
+                    "kubectl set image deployment/web-app nginx=nginx:1.25",
+                    "",
+                    "# Opción 2: Editar el deployment interactivamente",
+                    "kubectl edit deployment web-app",
+                    "# Cambiar: image: nginx:99.99.99-nonexistent",
+                    "# A:       image: nginx:1.25",
+                    "",
+                    "# Verificar la corrección:",
+                    "kubectl get pods -w   # Observar pods transicionar a Running",
+                ]),
+
+                # ── Sección 6: Pods Multi-contenedor ──
+                ("section", "Pods Multi-Contenedor", "Init containers y sidecars"),
+                ("two_column", "Patrones Multi-Contenedor",
+                    "Init Containers", [
+                        "Se ejecutan ANTES del contenedor principal",
+                        "Deben completarse exitosamente primero",
+                        "Uso: migraciones DB, setup de config, esperar dependencias",
+                        "Si init falla: Pod en Init:Error",
+                    ],
+                    "Sidecar Containers", [
+                        "Se ejecutan JUNTO al contenedor principal",
+                        "Comparten red y almacenamiento",
+                        "Uso: agentes de logging, proxies, monitoreo",
+                        "Si el sidecar crashea: puede afectar la app",
+                    ],
+                ),
+
+                # ── Sección 7: Resources ──
+                ("section", "Gestión de Recursos", "Requests, Limits y OOMKilled"),
+                ("two_column", "Requests vs Limits",
+                    "Requests (Mínimo)", [
+                        "Lo que el pod tiene garantizado",
+                        "El scheduler usa esto para colocar pods en nodos",
+                        "Si un nodo no tiene capacidad \u2192 pod queda Pending",
+                        ">> kubectl describe node | grep Allocated",
+                    ],
+                    "Limits (Máximo)", [
+                        "El techo máximo que un contenedor puede usar",
+                        "Exceder límite de CPU \u2192 throttled (más lento, no muere)",
+                        "Exceder límite de memoria \u2192 OOMKilled inmediatamente",
+                        ">> kubectl top pods (uso actual)",
+                    ],
+                ),
+
+                # ── Resumen y Preparación para Lab ──
+                ("table", "Referencia Completa de Diagnóstico", ["Síntoma", "Comando", "Qué Buscar"],
+                 [["Pod no arranca", "kubectl get pods", "Columna STATUS: ImagePullBackOff, Pending, etc."],
+                  ["¿Por qué falla?", "kubectl describe pod <nombre>", "Sección Events al final"],
+                  ["App crashea", "kubectl logs <pod>", "Mensajes de error de la aplicación"],
+                  ["Info del crash anterior", "kubectl logs <pod> --previous", "Logs antes de que el contenedor reiniciara"],
+                  ["Imagen incorrecta", "kubectl get deploy -o yaml | grep image", "Verificar que image:tag sea correcto"],
+                  ["Arreglar imagen", "kubectl set image deploy/<name> <ctr>=<img:tag>", "Pods deben transicionar a Running"]]),
+                ("table", "Preparación para el Lab: Comandos que Necesitarás", ["Paso", "Comando", "Propósito"],
+                 [["1", "kubectl get pods", "Ver qué pods están fallando y su estado"],
+                  ["2", "kubectl describe pod <nombre>", "Leer Events para encontrar la imagen incorrecta"],
+                  ["3", "kubectl get deploy web-app -o yaml | grep image", "Confirmar el tag incorrecto de la imagen"],
+                  ["4", "kubectl set image deployment/web-app nginx=nginx:1.25", "Corregir la imagen a un tag válido"],
+                  ["5", "kubectl get pods -w", "Observar los pods recuperarse a Running"]]),
             ],
             "lab_title": "Arreglar ImagePullBackOff",
-            "lab_desc": "Un desarrollador junior acaba de desplegar una nueva versión del microservicio de pagos, pero los clientes reportan fallos en el checkout. El pod está atascado en ImagePullBackOff — el desarrollador jura que la imagen existe. Encuentra qué salió mal y restaura el servicio antes de que el negocio pierda más ingresos.",
+            "lab_desc": "Un deployment llamado 'web-app' tiene 3 réplicas atascadas en ImagePullBackOff. El tag de la imagen es incorrecto. Usa el proceso de diagnóstico en 3 pasos (get \u2192 describe \u2192 fix) para identificar la imagen incorrecta y corregirla. Las 3 réplicas deben estar Running para aprobar.",
             "lab_cmd": "lab-02.sh",
         },
     },
@@ -1612,6 +2173,15 @@ def generate_lesson_pptx(num, lang, data):
             add_code_slide(prs, slide_def[1], slide_def[2])
         elif stype == "table":
             add_table_slide(prs, slide_def[1], slide_def[2], slide_def[3])
+        elif stype == "two_column":
+            add_two_column_slide(prs, slide_def[1], slide_def[2], slide_def[3], slide_def[4], slide_def[5])
+        elif stype == "flow":
+            add_flow_diagram_slide(prs, slide_def[1], slide_def[2])
+        elif stype == "highlight":
+            box_color = slide_def[4] if len(slide_def) > 4 else AZURE_BLUE
+            add_highlight_box_slide(prs, slide_def[1], slide_def[2], slide_def[3], box_color)
+        elif stype == "icon_cards":
+            add_icon_cards_slide(prs, slide_def[1], slide_def[2])
 
     # Lab slide
     add_lab_slide(prs, num, data["lab_title"], data["lab_desc"], data["lab_cmd"], lang)
