@@ -13,9 +13,10 @@
 Un **Pod** es la unidad más pequeña en Kubernetes. Contiene uno o más contenedores que comparten red y almacenamiento.
 
 ### Características clave:
-- Cada pod recibe su propia **IP única** dentro del cluster
-- Los contenedores dentro del pod se comunican por `localhost`
-- Los pods son **efímeros** – cuando mueren, no se reparan; se crean nuevos
+- **Contenedor(es)**: Uno o más contenedores ejecutando tu aplicación. Todos comparten la misma red (`localhost`) y volúmenes de almacenamiento
+- **IP del Pod**: Cada pod recibe una IP única dentro del cluster. Otros pods pueden comunicarse directamente usando esta IP
+- **Almacenamiento Compartido**: Los volúmenes definidos a nivel de pod se pueden montar en cualquier contenedor del pod, permitiendo compartir datos
+- **Efímero**: Los pods son desechables. Cuando un pod se elimina o falla, no se repara — se crea uno nuevo para reemplazarlo
 
 ```yaml
 apiVersion: v1
@@ -65,7 +66,8 @@ Pending → Running → Succeeded/Failed
 | **ImagePullBackOff** | No puede descargar la imagen del contenedor | Nombre/tag incorrecto, registro privado sin auth |
 | **ErrImagePull** | Primer intento de pull falló | La imagen no existe en el registro |
 | **CrashLoopBackOff** | El contenedor se reinicia constantemente tras fallar | Error de app, comando incorrecto, config faltante |
-| **OOMKilled** | El contenedor excedió el límite de memoria | Límite muy bajo o memory leak |
+| **OOMKilled** | El contenedor excedió el límite de memoria | Límite de memoria muy bajo o memory leak |
+| **Pending (atascado)** | El pod no puede ser programado | CPU/memoria insuficiente en los nodos |
 
 ---
 
@@ -88,9 +90,24 @@ myacr.azurecr.io/myapp:v2              # Azure Container Registry privado
 2. Reintenta con backoff exponencial → **ImagePullBackOff**
 3. El pod queda atascado hasta que se corrija la imagen
 
+### Pull de Imagen: Éxito vs Fallo
+
+| ✅ Pull Exitoso | ❌ Pull Fallido |
+|---|---|
+| La imagen y el tag existen en el registro | Nombre de imagen mal escrito o tag inexistente |
+| El cluster tiene acceso de red al registro | Registro inalcanzable (firewall, DNS) |
+| Si es privado: `imagePullSecrets` configurado | Registro privado sin credenciales |
+| Pod transiciona: Pending → Running | Pod queda atascado en ImagePullBackOff |
+
 ---
 
 ## 4. Diagnóstico de Pods – Proceso de 3 Pasos
+
+```
+1. GET  →  2. DESCRIBE  →  3. LOGS
+kubectl get pods    kubectl describe pod    kubectl logs <pod>
+(ver STATUS)        (ver EVENTS)            (ver salida de la app)
+```
 
 ### Paso 1: Ver estado con `kubectl get pods`
 ```bash
@@ -160,8 +177,18 @@ kubectl get pods -w   # Observar pods transicionar a Running
 ## 6. Pods Multi-Contenedor
 
 Un pod puede tener:
-- **Init containers**: Se ejecutan ANTES del contenedor principal
-- **Sidecar containers**: Se ejecutan JUNTO al contenedor principal
+
+### Init Containers
+- Se ejecutan **ANTES** del contenedor principal
+- Deben completarse exitosamente primero
+- Uso: migraciones DB, setup de config, esperar dependencias
+- Si init falla: Pod en `Init:Error` o `Init:CrashLoopBackOff`
+
+### Sidecar Containers
+- Se ejecutan **JUNTO** al contenedor principal
+- Comparten red y almacenamiento
+- Uso: agentes de logging, proxies, monitoreo
+- Si el sidecar crashea: puede afectar la app
 
 ```yaml
 spec:
@@ -174,8 +201,6 @@ spec:
     image: myapp:v1
 ```
 
-Si un init container falla, el pod queda en `Init:Error` o `Init:CrashLoopBackOff`.
-
 ---
 
 ## 7. Resources: Requests y Limits
@@ -183,12 +208,15 @@ Si un init container falla, el pod queda en `Init:Error` o `Init:CrashLoopBackOf
 | Concepto | Qué es | Si se excede |
 |----------|--------|--------------|
 | **requests** | Mínimo garantizado (el scheduler usa esto) | Pod queda Pending si no hay capacidad |
-| **limits** | Máximo que puede usar | CPU → throttled; Memoria → OOMKilled |
+| **limits** | Máximo que puede usar | CPU → throttled (más lento, no muere); Memoria → OOMKilled |
 
 ```bash
 # Ver uso de recursos actual
 kubectl top pods
 kubectl top nodes
+
+# Ver recursos asignados en un nodo
+kubectl describe node | grep Allocated
 
 # Si un pod es OOMKilled:
 kubectl describe pod <name>  # → State: OOMKilled
@@ -212,6 +240,16 @@ kubectl describe pod <name>  # → State: OOMKilled
 ## Lab 02 – Arreglar ImagePullBackOff
 
 El lab despliega un **Deployment** llamado `web-app` con **3 réplicas** usando una imagen inexistente (`nginx:99.99.99-nonexistent`). Todos los pods quedan en ImagePullBackOff.
+
+### Preparación para el Lab: Comandos que Necesitarás
+
+| Paso | Comando | Propósito |
+|------|---------|----------|
+| 1 | `kubectl get pods` | Ver qué pods están fallando y su estado |
+| 2 | `kubectl describe pod <nombre>` | Leer Events para encontrar la imagen incorrecta |
+| 3 | `kubectl get deploy web-app -o yaml \| grep image` | Confirmar el tag incorrecto de la imagen |
+| 4 | `kubectl set image deployment/web-app nginx=nginx:1.25` | Corregir la imagen a un tag válido |
+| 5 | `kubectl get pods -w` | Observar los pods recuperarse a Running |
 
 ### Tu tarea:
 1. Diagnosticar con `kubectl get pods` y `kubectl describe pod`
